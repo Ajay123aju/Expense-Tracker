@@ -1,6 +1,7 @@
 import csv
-
+from collections import defaultdict
 from datetime import datetime
+
 FILE_NAME = "expenses.csv"
 
 def get_date():
@@ -70,24 +71,67 @@ def view_expenses():
     except FileNotFoundError:
         print("\n⚠️ No expense file found!")
 
+
+def summary_report():
+    try:
+        with open(FILE_NAME, 'r', encoding="utf-8") as file:
+                reader = csv.reader(file)
+                data = list(reader)
+
+        if len(data) <= 1:
+                print("\n⚠️ No expenses recorded yet!")
+                return
+            
+        rows = data[1:]
+
+        total=0
+        category_totals = defaultdict(float)
+        highest_expense = ("",0,"","")
+
+        for row in rows:
+            date, category, amount, note = row
+            amount = float(amount)
+            total += amount
+            category_totals[category] += amount
+            
+            if amount > highest_expense[1]:
+                highest_expense = (date, amount, category, note)
+
+        print("\n📊 --- Expense Summary ---")
+        print(f"💰 Total Spent: {total:.2f}\n")
+
+        print("📂 Spending by Category:")
+        for cat, amt in category_totals.items():
+            print(f"   - {cat:<12}: {amt:.2f}")
+
+        print("\n🏆 Highest Expense:")
+        print(f"   {highest_expense[1]:.2f} on {highest_expense[0]} ({highest_expense[2]}) - {highest_expense[3]}")
+
+    except FileNotFoundError:
+        print("\n⚠️ No expense file found!")
+
 def main():
     setup_file()
     while True:
         print("\n---Expense Tracker---")
         print("1. Add Expense")
         print("2. View Expense")
-        print("3. Exit")
+        print("3. Summary Report") 
+        print("4. Exit")
         choice = input("Enter Your choice: ")
 
-        if choice == "1":
-            add_expense()
-        elif choice == "2":
-            view_expenses()
-        elif choice == "3":
-            print("Exiting...")
-            break
-        else:
-            print("Invalid Choice")
+        match choice:
+            case "1": 
+                add_expense()
+            case "2":
+                view_expenses()
+            case "3":
+                summary_report()
+            case "4": 
+                print("Exiting...") 
+                break
+            case _:
+                print("❌ Invalid choice, try again.")
 
 if __name__ == "__main__":
     main()
